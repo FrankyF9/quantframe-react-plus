@@ -104,8 +104,11 @@ async fn setup_manages(app: &mut App) -> Result<(), AppError> {
     // Create the database connection and store it and run the migrations
     let conn = Database::connect(db_url)
         .await
-        .expect("Database connection failed");
-    Migrator::up(&conn, None).await.unwrap();
+        .map_err(|err| AppError::new_db("Setup:Database", err))?;
+    Migrator::up(&conn, None)
+        .await
+        .map_err(|err| AppError::new_db("Setup:Database", err))?;
+
 
     // Create and manage Notification state
     let app_arc: Arc<Mutex<AppState>> = Arc::new(Mutex::new(AppState::new(
